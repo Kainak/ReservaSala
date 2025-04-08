@@ -45,8 +45,7 @@ PostgreSQL (User)	localhost:5433	5433
 PostgreSQL (Sala)	localhost:5434	5434
 PostgreSQL (Reserva)	localhost:5435	5435
 ```
-# ⚠️ A interface do Adminer pode ser usada para acessar qualquer banco. Basta configurar:
-
+### A interface do Adminer pode ser usada para acessar qualquer banco. Basta configurar:
 Sistema: PostgreSQL
 Servidor: nome do container (ex: dbuser)
 Usuário: postgres
@@ -54,13 +53,13 @@ Senha: admin
 Base de dados: usersdb, salasdb ou reservasdb
 
 
-# 🛠️ Tecnologias Utilizadas
+## 🛠️ Tecnologias Utilizadas
 Java 17 + Spring Boot
 PostgreSQL 15
 Docker / Docker Compose
 Adminer (para administração do banco de dados)
 
-# 🗃️ Organização do Projeto
+## 🗃️ Organização do Projeto
 ```
 .
 ├── User/
