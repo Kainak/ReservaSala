@@ -1,4 +1,4 @@
-package com.usuarioservice.demo;
+package com.UserMicroService.demo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

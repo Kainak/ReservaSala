@@ -1,4 +1,4 @@
-package com.salaservice.demo.application.model;
+package com.salaservice.demo.domain.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

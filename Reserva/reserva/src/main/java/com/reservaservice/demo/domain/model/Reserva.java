@@ -1,5 +1,6 @@
-package com.reservaservice.demo.application.model;
+package com.reservaservice.demo.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,12 @@ public class Reserva {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDateTime dataHora;
-    private Integer sala_id;
-    private Integer usuario_id;
+
+    @JsonProperty("sala_id")
+    @Column(name = "sala_id")
+    private Integer salaId;
+    
+    @JsonProperty("usuario_id")
+    @Column(name = "usuario_id")
+    private Integer usuarioId;
 }

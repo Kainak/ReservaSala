@@ -1,6 +1,6 @@
-package com.UserMicroService.demo.infrastructure.controller;
+package com.UserMicroService.demo.interfaces.controller;
 
-import com.UserMicroService.demo.application.model.User;
+import com.UserMicroService.demo.domain.model.User;
 import com.UserMicroService.demo.application.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

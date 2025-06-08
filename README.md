@@ -77,7 +77,7 @@ Você pode usar a extensão REST Client no VS Code com o arquivo testes.http, ou
 ## 📌 UserService (porta 8081)
 ### ➕ Criar um Usuário
 ```
-POST http://localhost:8081/users
+POST http://localhost:8081/users/salvar
 ```
 Content-Type: application/json
 ```
@@ -122,7 +122,7 @@ GET http://localhost:8082/salas
 ➕ Criar uma Reserva
 
 ```
-POST http://localhost:8083/reservas/salvar
+POST http://localhost:8083/reservas
 ```
 Content-Type: application/json
 ```
