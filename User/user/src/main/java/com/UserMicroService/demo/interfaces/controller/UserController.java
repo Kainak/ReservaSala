@@ -18,7 +18,7 @@ public class UserController {
         return service.listar();
     }
 
-    @PostMapping("/salvar")
+    @PostMapping
     public User salvar(@RequestBody User user) {
         return service.salvar(user);
     }
