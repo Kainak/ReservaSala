@@ -25,4 +25,8 @@ public class Reserva {
     @JsonProperty("usuario_id")
     @Column(name = "usuario_id")
     private Integer usuarioId;
+    
+    @Transient
+    @JsonProperty("nome_usuario")
+    private String nomeUsuario;
 }

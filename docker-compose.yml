@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   api-gateway:
     image: nginx:latest
@@ -16,6 +15,19 @@ services:
       - usermicroservice
       - salamicroservice
       - reservamicroservice
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"  # Porta para comunicação dos serviços
+      - "15672:15672" # Porta para a interface de gerenciamento web
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - messaging-net
 
   usermicroservice:
     build: User/user
@@ -43,12 +55,33 @@ services:
     build: Reserva/reserva
     depends_on:
       - dbreserva
+      - rabbitmq
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://dbreserva:5432/reservasdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_RABBITMQ_HOST: rabbitmq
+      spring.rabbitmq.username: user
+      spring.rabbitmq.password: password
     networks:
       - reserva-net
+      - messaging-net
+
+  historicomicroservice:
+    build: Historico/historico
+    depends_on:
+      - dbhistorico
+      - rabbitmq
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://dbhistorico:5432/historicosdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_RABBITMQ_HOST: rabbitmq
+      spring.rabbitmq.username: user
+      spring.rabbitmq.password: password
+    networks:
+      - historico-net
+      - messaging-net
 
   dbuser:
     image: postgres:15
@@ -95,22 +128,41 @@ services:
     volumes:
       - reservadbdata:/var/lib/postgresql/data
 
+  dbhistorico:
+    image: postgres:15
+    container_name: dbhistorico
+    restart: always
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: historicosdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    networks:
+      - historico-net
+    volumes:
+      - historicodbdata:/var/lib/postgresql/data
+
   adminer:
     image: adminer
     restart: always
     ports:
-      - "8888:8080"
+      - "8888:8080" # Mudei a porta para não conflitar com o gateway
     networks:
       - user-net
       - sala-net
       - reserva-net
+      - historico-net
 
 networks:
   user-net:
   sala-net:
   reserva-net:
+  historico-net:
+  messaging-net:
 
 volumes:
   userdbdata:
   saladbdata:
   reservadbdata:
+  historicodbdata:

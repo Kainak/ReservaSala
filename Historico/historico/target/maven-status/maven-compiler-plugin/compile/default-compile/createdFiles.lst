@@ -1,0 +1,5 @@
+com/historicoservice/demo/consumer/HistoricoConsumer.class
+com/historicoservice/demo/dto/HistoricoDTO.class
+com/historicoservice/demo/HistoricoApplication.class
+com/historicoservice/demo/repository/HistoricoRepository.class
+com/historicoservice/demo/model/Historico.class
