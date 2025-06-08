@@ -1,142 +1,105 @@
-# 📦 Microservices - Sistema de Reserva de Salas
+# Sistema de Reserva de Salas - Arquitetura de Microserviços
 
-Este projeto é composto por três microsserviços desenvolvidos em **Spring Boot**, cada um com seu próprio banco de dados PostgreSQL. O ambiente é orquestrado com **Docker Compose**, proporcionando uma arquitetura desacoplada e escalável.
+Este projeto implementa um sistema de reserva de salas utilizando uma arquitetura de microserviços. A aplicação é totalmente containerizada com Docker e orquestrada com Docker Compose.
 
-## 🧩 Microsserviços
+## Visão Geral da Arquitetura
 
-- **UserMicroservice**: Responsável pelo cadastro, autenticação e gestão de usuários.
-- **SalaMicroservice**: Responsável pela criação, listagem e gestão das salas disponíveis.
-- **ReservaMicroservice**: Gerencia as reservas realizadas pelos usuários em relação às salas disponíveis.
+A arquitetura é composta por quatro microserviços principais, um API Gateway que centraliza o acesso, bancos de dados isolados para cada serviço e um sistema de mensageria para comunicação assíncrona.
 
----
+- **API Gateway (Nginx)**: Ponto único de entrada para todas as requisições externas. Roteia as chamadas para o microserviço apropriado.
+- **Microserviços (Spring Boot)**:
+    - **Serviço de Usuário**: Gerencia os dados dos usuários.
+    - **Serviço de Sala**: Gerencia as salas disponíveis para reserva.
+    - **Serviço de Reserva**: Orquestra a criação de reservas, validando a disponibilidade.
+    - **Serviço de Histórico**: Mantém um registro de todas as reservas concluídas, consumindo mensagens de forma assíncrona.
+- **Bancos de Dados (PostgreSQL)**: Cada microserviço possui sua própria instância de banco de dados, garantindo o isolamento dos dados.
+- **Mensageria (RabbitMQ)**: Utilizado para desacoplar os serviços. O serviço de reserva publica um evento quando uma reserva é feita, e o serviço de histórico consome esse evento para criar um registro.
 
-## 🐳 Arquitetura com Docker Compose
+### Diagrama da Arquitetura
 
-### Estrutura dos serviços
+```mermaid
+graph TD
+    subgraph "Cliente"
+        Client[Usuário/Frontend]
+    end
 
-- Cada microsserviço possui:
-  - Um container da aplicação Spring Boot.
-  - Um container PostgreSQL próprio.
-- Um container **Adminer** está disponível para visualização e gerenciamento das bases de dados via interface web.
+    subgraph "Rede Externa"
+        Client -- Requisições HTTP --> APIGateway[API Gateway - Nginx:8080]
+    end
 
----
+    subgraph "Rede de Usuário (user-net)"
+        APIGateway -- /users --> UserMS[Serviço de Usuário]
+        UserMS -- CRUD --> UserDB[(PostgreSQL - dbuser)]
+    end
 
-## 🚀 Como subir o ambiente
+    subgraph "Rede de Sala (sala-net)"
+        APIGateway -- /salas --> SalaMS[Serviço de Sala]
+        SalaMS -- CRUD --> SalaDB[(PostgreSQL - dbsala)]
+    end
 
-### Pré-requisitos
+    subgraph "Rede de Reserva (reserva-net)"
+        APIGateway -- /reservas --> ReservaMS[Serviço de Reserva]
+        ReservaMS -- CRUD --> ReservaDB[(PostgreSQL - dbreserva)]
+    end
+    
+    subgraph "Rede de Histórico (historico-net)"
+        HistoricoMS[Serviço de Histórico] -- CRUD --> HistoricoDB[(PostgreSQL - dbhistorico)]
+    end
 
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
+    subgraph "Rede de Mensageria (messaging-net)"
+        ReservaMS -- Publica evento --> RabbitMQ[RabbitMQ]
+        RabbitMQ -- Consome evento --> HistoricoMS
+    end
 
-### Comando para subir
-
-```bash
-docker-compose up --build
+    subgraph "Rede de Gerenciamento"
+        Adminer[Adminer:8888]
+        Adminer --> UserDB
+        Adminer --> SalaDB
+        Adminer --> ReservaDB
+        Adminer --> HistoricoDB
+    end
 ```
 
-# 🔍 Acessos e Portas
-## Serviço	URL de Acesso	Porta
-```
-Adminer (DB GUI)	http://localhost:8080	8080
-UserMicroservice	http://localhost:8081	8081
-SalaMicroservice	http://localhost:8082	8082
-ReservaMicroservice	http://localhost:8083	8083
-PostgreSQL (User)	localhost:5433	5433
-PostgreSQL (Sala)	localhost:5434	5434
-PostgreSQL (Reserva)	localhost:5435	5435
-```
-### A interface do Adminer pode ser usada para acessar qualquer banco. Basta configurar:
-Sistema: PostgreSQL
-Servidor: nome do container (ex: dbuser)
-Usuário: postgres
-Senha: admin
-Base de dados: usersdb, salasdb ou reservasdb
+## Tecnologias Utilizadas
 
+- **Backend**: Java 17, Spring Boot 3
+- **Banco de Dados**: PostgreSQL
+- **Containerização**: Docker, Docker Compose
+- **API Gateway**: Nginx
+- **Mensageria**: RabbitMQ
 
-## 🛠️ Tecnologias Utilizadas
-Java 17 + Spring Boot
-PostgreSQL 15
-Docker / Docker Compose
-Adminer (para administração do banco de dados)
+## Pré-requisitos
 
-## 🗃️ Organização do Projeto
-```
-.
-├── User/
-│   └── user/           # Código do microsserviço de usuário
-├── Sala/
-│   └── sala/           # Código do microsserviço de sala
-├── Reserva/
-│   └── reserva/        # Código do microsserviço de reserva
-├── docker-compose.yml  # Orquestração dos serviços
-```
+- Docker
+- Docker Compose
 
-# 🧪 Testando as APIs
-Você pode usar a extensão REST Client no VS Code com o arquivo testes.http, ou importar para o Postman se preferir.
+## Como Executar o Projeto
 
-## 📌 UserService (porta 8081)
-### ➕ Criar um Usuário
-```
-POST http://localhost:8081/users/salvar
-```
-Content-Type: application/json
-```
+1.  Clone este repositório.
+2.  Na pasta raiz do projeto, execute o seguinte comando para construir as imagens e iniciar todos os containers:
+    ```sh
+    docker compose up --build -d
+    ```
+3.  A aplicação estará disponível através do API Gateway na porta `8080`.
 
-{
-  "nome": "Natan",
-  "email": "natan@email.com",
-  "senha": "senha123",
-  "telefone": "45999999999",
-  "rua": "Rua do Desenvolvedor",
-  "numero": "100",
-  "cidade": "Toledo",
-  "cep": "85900-000",
-  "cpf": "12345678910",
-  "dataNascimento": "1999-08-15",
-  "dataCadastro": "2025-04-07"
-}
-```
+## Endpoints da API
 
-## 📄 Listar Usuários
-```
-GET http://localhost:8081/users
-```
+Todas as requisições devem ser feitas para o API Gateway em `http://localhost:8080`.
 
-📌 SalaService (porta 8082)
-➕ Criar uma Sala
-```
-POST http://localhost:8082/salas
-```
-Content-Type: application/json
-```
-{
-  "nome": "Sala de Reunião 01",
-  "capacidade": 10
-}
-```
-##📄 Listar Salas
-```
-GET http://localhost:8082/salas
-```
-📌 ReservaService (porta 8083)
-➕ Criar uma Reserva
+- **Serviço de Usuário**:
+  - `GET /users`
+  - `POST /users`
 
-```
-POST http://localhost:8083/reservas
-```
-Content-Type: application/json
-```
-{
-  "dataHora": "2025-04-10T14:00:00",
-  "sala_id": 1,
-  "usuario_id": 1
-}
-```
-## 📄 Listar Reservas
-```
-GET http://localhost:8083/reservas
-```
+- **Serviço de Sala**:
+  - `GET /salas`
+  - `POST /salas`
 
-🤝 Contribuições
-Fique à vontade para abrir issues ou enviar pull requests caso deseje contribuir com melhorias, correções ou novas funcionalidades.
+- **Serviço de Reserva**:
+  - `GET /reservas`
+  - `POST /reservas` (o corpo deve incluir `sala_id`, `usuario_id` e `nome_usuario`)
+
+## Ferramentas de Gerenciamento
+
+- **RabbitMQ Management**: Acesse a interface web do RabbitMQ para monitorar filas e mensagens em `http://localhost:15672`. (Login: `user` / Senha: `password`)
+- **Adminer**: Acesse a ferramenta de gerenciamento de banco de dados em `http://localhost:8888` para visualizar os dados de cada serviço. Os nomes dos hosts dos bancos são `dbuser`, `dbsala`, `dbreserva`, e `dbhistorico`.
 
